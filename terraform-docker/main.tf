@@ -14,28 +14,18 @@ resource "docker_image" "nodered_image" {
 }
 
 resource "random_string" "random" {
-  count   = 1
+  count   = var.container_count
   length  = 4
   special = false
   upper   = false
 }
 
 resource "docker_container" "nodered_container" {
-  count = 1
+  count = var.container_count
   name  = join("-", ["nodered", random_string.random[count.index].result])
   image = docker_image.nodered_image.image_id
   ports {
-    internal = 1880
+    internal = var.int_port
+    external = var.ext_port
   }
 }
-
-output "ip-address" {
-  value = [for i in docker_container.nodered_container[*]: join(":", [i.network_data[0].ip_address], i.ports[*]["external"])]
-  description = "The IP address and external port of the container"
-}
-
-output "container-name" {
-  value       = docker_container.nodered_container[*].name
-  description = "The name of the container"
-}
-
